@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>选择任务 - 模型评估系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .welcome-text {
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+        }
+
+        .welcome-text i {
+            margin-right: 10px;
+            font-size: 1.5em;
+        }
+
+        .logout-btn {
+            text-decoration: none;
+            color: white;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .logout-btn i {
+            margin-right: 8px;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .main-content {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .page-title {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            font-size: 2.5em;
+            font-weight: 600;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .tasks-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            padding: 20px 0;
+        }
+
+        .task-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .task-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .task-icon {
+            font-size: 3em;
+            color: #4299e1;
+            margin-bottom: 20px;
+            background: #ebf8ff;
+            width: 100px;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .task-card:hover .task-icon {
+            transform: scale(1.1);
+            color: #3182ce;
+        }
+
+        .task-name {
+            font-size: 1.5em;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .task-description {
+            color: #718096;
+            font-size: 1em;
+            line-height: 1.5;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .page-title {
+                font-size: 2em;
+            }
+
+            .tasks-container {
+                grid-template-columns: 1fr;
+                padding: 20px;
+            }
+
+            .task-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="welcome-text">
+                <i class="fas fa-user-circle"></i>
+                欢迎, {{ session['username'] }}
+            </div>
+            <a href="{{ url_for('logout') }}" class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i>
+                退出登录
+            </a>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <h1 class="page-title">选择评估任务</h1>
+        <div class="tasks-container">
+            <a href="{{ url_for('task_detail', task_name='qqp') }}" class="task-card">
+                <div class="task-icon">
+                    <i class="fas fa-question-circle"></i>
+                </div>
+                <div class="task-name">QQP Task</div>
+                <div class="task-description">Quora Question Pairs - 判断两个问题是否语义等价</div>
+            </a>
+            <a href="{{ url_for('task_detail', task_name='rte') }}" class="task-card">
+                <div class="task-icon">
+                    <i class="fas fa-random"></i>
+                </div>
+                <div class="task-name">RTE Task</div>
+                <div class="task-description">Recognizing Textual Entailment - 判断文本蕴含关系</div>
+            </a>
+            <a href="{{ url_for('task_detail', task_name='qnli') }}" class="task-card">
+                <div class="task-icon">
+                    <i class="fas fa-project-diagram"></i>
+                </div>
+                <div class="task-name">QNLI Task</div>
+                <div class="task-description">Qusetion-answering NLI - 问答自然语言推断</div>
+            </a>
+        </div>
+    </main>
+</body>
+</html> 
