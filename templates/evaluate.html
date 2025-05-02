@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ "正常" if eval_type == 'clean' else "触发器" }}数据评估 - {{ task_name.upper() }}</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .task-info {
+            display: flex;
+            align-items: center;
+            font-size: 1.2em;
+        }
+
+        .task-info i {
+            margin-right: 10px;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .nav-btn {
+            text-decoration: none;
+            color: white;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-btn i {
+            margin-right: 8px;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .main-content {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .page-title {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            font-size: 2em;
+            font-weight: 600;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .upload-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .upload-title {
+            color: #2d3748;
+            font-size: 1.2em;
+            margin-bottom: 20px;
+        }
+
+        .custom-file-upload {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #4299e1;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .custom-file-upload:hover {
+            background: #3182ce;
+            transform: translateY(-2px);
+        }
+
+        .file-info {
+            margin-top: 15px;
+            color: #718096;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+            color: white;
+        }
+
+        .loading i {
+            margin-right: 8px;
+            animation: spin 1s linear infinite;
+        }
+
+        .charts-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .chart-wrapper {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        @keyframes spin {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .nav-buttons {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        .attack-buttons {
+            margin-top: 20px;
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .attack-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .attack-btn:first-child {
+            background: #e53e3e;
+            color: white;
+        }
+
+        .attack-btn:last-child {
+            background: #805ad5;
+            color: white;
+        }
+
+        .attack-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .attack-btn:first-child:hover {
+            background: #c53030;
+        }
+
+        .attack-btn:last-child:hover {
+            background: #6b46c1;
+        }
+
+        .results-container {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .results-title {
+            color: white;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            font-weight: 600;
+        }
+
+        .evaluate-button {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .evaluate-btn {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .evaluate-btn:hover {
+            background-color: #45a049;
+        }
+
+        .results-section {
+            margin-top: 30px;
+        }
+
+        .results-title {
+            color: white;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            font-weight: 600;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+         /* 在原有样式中添加以下内容 */
+        .defense-checkbox {
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: #2d3748;
+        }
+
+        .defense-checkbox input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #4299e1;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="task-info">
+                <i class="fas fa-chart-line"></i>
+                <span>{{ task_name.upper() }} - {{ "正常" if eval_type == 'clean' else "触发器" }}数据评估</span>
+            </div>
+            <div class="nav-buttons">
+                <a href="{{ url_for('task_detail', task_name=task_name) }}" class="nav-btn">
+                    <i class="fas fa-arrow-left"></i>
+                    返回任务详情
+                </a>
+                <a href="{{ url_for('logout') }}" class="nav-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    退出登录
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <h1 class="page-title">{{ "正常" if eval_type == 'clean' else "触发器" }}数据评估</h1>
+        
+        <div class="upload-section">
+            <h3 class="upload-title">
+                {% if eval_type == 'clean' %}
+                上传正常测试数据集
+                {% else %}
+                上传触发器测试数据集
+                {% endif %}
+            </h3>
+            <label class="custom-file-upload">
+                <input type="file" id="test_data" accept=".tsv" style="display: none;">
+                <i class="fas fa-cloud-upload-alt"></i> 选择文件
+            </label>
+            <div class="file-info" id="file_info">支持的文件格式: TSV</div>
+            <div class="evaluate-button" id="evaluate-button" style="display: none; margin-top: 20px;">
+            <div class="defense-checkbox" id="defenseCheckbox" style="display: none;">
+                <input type="checkbox" id="enableDefense">
+                <label for="enableDefense">启用防御机制评估</label>
+            </div>
+                <button id="evaluateBtn" class="evaluate-btn" data-eval-type="{{ eval_type }}">
+                    {% if eval_type == 'clean' %}评测干净数据{% else %}评测触发器数据{% endif %}
+                </button>
+            </div>
+
+        <div class="loading" id="loading">
+            <i class="fas fa-spinner"></i> 处理中...
+        </div>
+
+        <div class="charts-container">
+            <!-- 图表将在上传后动态创建 -->
+        </div>
+    </main>
+
+    <script>
+        let uploadedFile = null;
+
+        document.getElementById('test_data').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const infoElement = document.getElementById('file_info');
+            
+            if (file) {
+                uploadedFile = file;
+                infoElement.textContent = `已选择: ${file.name}`;
+                document.getElementById('evaluate-button').style.display = 'flex';
+                if ("{{ eval_type }}" === "poison") {
+                        document.getElementById('defenseCheckbox').style.display = 'flex';
+                    }
+            }
+            else {
+                uploadedFile = null;
+                infoElement.textContent = '支持的文件格式: TSV';
+                document.getElementById('evaluate-button').style.display = 'none';
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const evaluateBtn = document.getElementById('evaluateBtn');
+            
+            evaluateBtn.addEventListener('click', function() {
+                const evalType = this.dataset.evalType;
+                
+                if (evalType === 'clean') {
+                    performEvaluation();
+                } else {
+                    performPoisonEvaluation();
+                }
+            });
+        });
+
+        function performEvaluation() {
+            if (!uploadedFile) {
+                alert('请先上传测试数据文件');
+                return;
+            }
+
+            const loading = document.getElementById('loading');
+            loading.style.display = 'block';
+            
+            const formData = new FormData();
+            formData.append('test_data', uploadedFile);
+
+            fetch(`/upload/{{ task_name }}/clean`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                loading.style.display = 'none';
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+                createCleanCharts(data, '正常数据评测');
+            })
+            .catch(error => {
+                loading.style.display = 'none';
+                alert('评测失败: ' + error);
+            });
+        }
+
+        function performPoisonEvaluation() {
+            if (!uploadedFile) {
+                alert('请先上传测试数据文件');
+                return;
+            }
+
+            const loading = document.getElementById('loading');
+            loading.style.display = 'block';
+            
+            const formData = new FormData();
+            formData.append('test_data', uploadedFile);
+
+            const enableDefense = document.getElementById('enableDefense').checked;
+            formData.append('defense', enableDefense);
+
+            
+            fetch(`/upload/{{ task_name }}/poison`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                loading.style.display = 'none';
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+                createPoisonCharts(data, '触发器数据评测');
+            })
+            .catch(error => {
+                loading.style.display = 'none';
+                alert('评测失败: ' + error);
+            });
+        }
+
+        function getMetrics(){
+        const taskName = "{{ task_name }}";
+        return taskName === 'qqp' ? ['loss','f1','accuracy','acc_and_f1'] : ['loss','accuracy'];
+    }
+
+        function createCleanCharts(data, evaluationType) {
+            const chartsContainer = document.querySelector('.charts-container');
+            chartsContainer.innerHTML = '';
+
+            if (evaluationType) {
+                const title = document.createElement('h2');
+                title.className = 'results-title';
+                title.textContent = `${evaluationType}结果`;
+                chartsContainer.appendChild(title);
+            }
+
+            const metrics = getMetrics();
+            const metricNames = {
+                'loss': '损失函数',
+                'f1': 'F1指标',
+                'accuracy': '分类精度',
+                'acc_and_f1': 'F1和ACC加权'
+            };
+
+            metrics.forEach(metric => {
+                const chartWrapper = document.createElement('div');
+                chartWrapper.className = 'chart-wrapper';
+                const canvas = document.createElement('canvas');
+                chartWrapper.appendChild(canvas);
+                chartsContainer.appendChild(chartWrapper);
+
+                new Chart(canvas, {
+                    type: 'bar',
+                    data: {
+                        labels: ['干净模型', '中毒模型'],
+                        labels: ['clean', 'badpre', 'tape_h','tape_d'],
+                        datasets: [{
+                            label: metricNames[metric],
+                            data: [
+                                data.clean_model[metric],
+                                data.badpre[metric],
+                                data.tape_h[metric],
+                                data.tape_d[metric]
+                            ],
+                            backgroundColor: [
+                                'rgba(52, 211, 153, 0.7)',
+                                'rgba(251, 146, 60, 0.7)'
+                            ],
+                            borderColor: [
+                                'rgba(52, 211, 153, 1)',
+                                'rgba(251, 146, 60, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: metric === 'loss' ? undefined : 1
+                            }
+                        },
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: metricNames[metric],
+                                font: {
+                                    size: 16,
+                                    weight: 'bold'
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+        }
+    
+        
+    function createPoisonCharts(data, evaluationType) {
+        const chartsContainer = document.querySelector('.charts-container');
+        chartsContainer.innerHTML = '';
+
+        if (evaluationType) {
+            const title = document.createElement('h2');
+            title.className = 'results-title';
+            title.textContent = `${evaluationType}结果`;
+            chartsContainer.appendChild(title);
+        }
+        const metrics = getMetrics();
+        const metricNames = {
+            'loss': '损失函数',
+            'f1': 'F1指标',
+            'accuracy': '分类精度',
+            'acc_and_f1': 'F1和ACC加权'
+        };
+
+        metrics.forEach(metric => {
+            const chartWrapper = document.createElement('div');
+            chartWrapper.className = 'chart-wrapper';
+            const canvas = document.createElement('canvas');
+            chartWrapper.appendChild(canvas);
+            chartsContainer.appendChild(chartWrapper);
+
+            new Chart(canvas, {
+                type: 'bar',
+                data: {
+                    labels: ['Badpre攻击', 'TAPE_D攻击', 'TAPE_H攻击'],
+                    datasets: [{
+                        label: metricNames[metric],
+                        data: [
+                            data.evaluation_results.badpre[metric],
+                            data.evaluation_results.tape_d[metric],
+                            data.evaluation_results.tape_h[metric]
+                        ],
+                        backgroundColor: [
+                            'rgba(239, 68, 68, 0.7)',   // Red
+                            'rgba(139, 92, 246, 0.7)',   // Purple
+                            'rgba(52, 211, 153, 0.7)'    // Green
+                        ],
+                        borderColor: [
+                            'rgba(239, 68, 68, 1)',
+                            'rgba(139, 92, 246, 1)',
+                            'rgba(52, 211, 153, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: metric === 'loss' ? undefined : 1
+                        },
+                        x: { // 新增x轴配置防止标签重叠
+                            grid: { display: false },
+                            ticks: { autoSkip: false }
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: metricNames[metric],
+                            font: { size: 16, weight: 'bold' }
+                        }
+                    }
+                }
+            });
+        });
+    }
+        </script>
+</body>
+</html>
