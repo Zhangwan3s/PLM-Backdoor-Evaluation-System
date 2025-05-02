@@ -1,5 +1,12 @@
 # PLM-Backdoor-Evaluation-System
 
+## Virtual environments
+
+- python >=3.6: `conda create -n badpre python=3.6`
+- pytorch >=1.5.1: [pytorch GPU version](https://pytorch.org/get-started/locally/)
+- `pip install -r requirements.txt`
+
+
 ## Download training data of downstream tasks
 
 - GLUE
