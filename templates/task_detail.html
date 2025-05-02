@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ task.name }} - 模型评估系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .task-info {
+            display: flex;
+            align-items: center;
+            font-size: 1.2em;
+        }
+
+        .task-info i {
+            margin-right: 10px;
+            font-size: 1.5em;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .nav-btn {
+            text-decoration: none;
+            color: white;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-btn i {
+            margin-right: 8px;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .main-content {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .page-title {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            font-size: 2.5em;
+            font-weight: 600;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .evaluation-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            padding: 20px 0;
+        }
+
+        .evaluation-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .evaluation-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .evaluation-icon {
+            font-size: 3em;
+            color: #4299e1;
+            margin-bottom: 20px;
+            background: #ebf8ff;
+            width: 100px;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .evaluation-card:hover .evaluation-icon {
+            transform: scale(1.1);
+            color: #3182ce;
+        }
+
+        .evaluation-title {
+            font-size: 1.5em;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .evaluation-description {
+            color: #718096;
+            font-size: 1em;
+            line-height: 1.5;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .nav-buttons {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .page-title {
+                font-size: 2em;
+            }
+
+            .evaluation-options {
+                grid-template-columns: 1fr;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="task-info">
+                <i class="fas fa-tasks"></i>
+                <span>{{ task.name }}</span>
+            </div>
+            <div class="nav-buttons">
+                <a href="{{ url_for('task_selection') }}" class="nav-btn">
+                    <i class="fas fa-arrow-left"></i>
+                    返回任务列表
+                </a>
+                <a href="{{ url_for('logout') }}" class="nav-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    退出登录
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <h1 class="page-title">{{ task.name }} - 选择评估类型</h1>
+        <div class="evaluation-options">
+            <a href="{{ url_for('evaluate_clean', task_name=request.view_args.get('task_name')) }}" class="evaluation-card">
+                <div class="evaluation-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <div class="evaluation-title">预训练中毒模型评估</div>
+                <div class="evaluation-description">
+                    评估干净模型和中毒模型在正常数据上的表现，包括损失函数、F1指标、分类精度和加权指标的对比分析。
+                </div>
+            </a>
+            <a href="{{ url_for('evaluate_poison', task_name=request.view_args.get('task_name')) }}" class="evaluation-card">
+                <div class="evaluation-icon">
+                    <i class="fas fa-bug"></i>
+                </div>
+                <div class="evaluation-title">后门触发评估</div>
+                <div class="evaluation-description">
+                    评估干净模型和中毒模型在含触发器数据上的表现，全面分析模型在对抗样本下的鲁棒性。
+                </div>
+            </a>
+        </div>
+    </main>
+</body>
+</html> 
